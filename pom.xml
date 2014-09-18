@@ -8,8 +8,9 @@
   <packaging>jar</packaging>
 
   <name>java-generator-functions</name>
-  <url>https://github.com/mherrmann/java-generator-functions</url>
   <description>An implementation of a Python-like yield(...) method in Java.</description>
+  <url>https://github.com/mherrmann/java-generator-functions</url>
+
   <licenses>
     <license>
       <name>MIT License</name>
@@ -17,12 +18,19 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+
   <developers>
     <developer>
       <name>Michael Herrmann</name>
       <email>michael@herrmann.io</email>
     </developer>
   </developers>
+
+  <scm>
+    <connection>scm:git:git@github.com:mherrmann/java-generator-functions.git</connection>
+    <url>scm:git:git@github.com:mherrmann/java-generator-functions.git</url>
+    <developerConnection>scm:git:git@github.com:mherrmann/java-generator-functions.git</developerConnection>
+  </scm>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
