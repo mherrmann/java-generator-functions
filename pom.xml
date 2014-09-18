@@ -10,6 +10,13 @@
   <name>java-generator-functions</name>
   <url>https://github.com/mherrmann/java-generator-functions</url>
   <description>An implementation of a Python-like yield(...) method in Java.</description>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
   <developers>
     <developer>
       <name>Michael Herrmann</name>
