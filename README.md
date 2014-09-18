@@ -27,7 +27,7 @@ Infinite generators are also possible:
         }
     };
 
-`Generator` lies in package `io.herrmann.generator`. So you need to `import io.herrmann.generator.Generator;` in order for the above examples to work.
+The `Generator` class lies in package `io.herrmann.generator`. So you need to `import io.herrmann.generator.Generator;` in order for the above examples to work.
 
 Performance
 -----------
