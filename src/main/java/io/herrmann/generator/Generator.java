@@ -10,7 +10,7 @@ import java.util.NoSuchElementException;
  * The implementation uses a separate Thread to produce the sequence items. This
  * is certainly not as fast as eg. a for-loop, but not horribly slow either. On
  * a machine with a dual core i5 CPU @ 2.67 GHz, 1000 items can be produced in
- * < 0.03s.
+ * &lt; 0.03s.
  *
  * By overriding finalize(), the class takes care not to leave any Threads
  * running longer than necessary.
