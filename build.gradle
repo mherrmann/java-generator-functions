@@ -1,0 +1,84 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'maven'
+    id 'maven-publish'
+    id 'com.jfrog.bintray' version '1.0'
+}
+
+group="io.herrmann"
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+version = '1.0'
+
+description = 'An implementation of a Python-like yield(...) method in Java.'
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    testCompile 'junit:junit:4.11'
+}
+
+test {
+    useJUnit()
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    from "${buildDir}/docs/javadoc"
+    classifier = 'javadoc'
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            pom.withXml {
+                asNode().children().last() + {
+                    resolveStrategy = DELEGATE_FIRST
+                    name 'generator'
+                    description project.description
+                    url "https://github.com/mherrmann/java-generator-functions"
+                    scm {
+                        url "https://github.com/mherrmann/java-generator-functions"
+                        connection "scm:git:https://github.com/mherrmann/java-generator-functions"
+                    }
+                    licenses {
+                        license {
+                            name "The MIT License"
+                            distribution 'repo'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+bintray {
+    user = System.getenv('BINTRAY_USER') ?: project.properties.bintray_username
+    key  = System.getenv('BINTRAY_KEY')  ?: project.properties.bintray_api_key
+    publications = ['maven']
+    pkg {
+        repo = 'maven'
+        name = 'generators'
+        version project.version
+    }
+}
+
+tasks.bintrayUpload.doFirst {
+    assert !project.version.contains('SNAPSHOT')
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}
