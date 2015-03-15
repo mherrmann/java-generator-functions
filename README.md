@@ -3,27 +3,6 @@ java-generator-functions
 
 An implementation of Python-like generator functions in Java. This repository contains a single class, `Generator` with a method `yield(...)` which can be used to mimic the behaviour of the `yield` keyword in Python.
 
-Usage
------
-
-This package is hosted on mave repository with following url:
-
-    http://dl.bintray.com/filipmalczak/maven
-
-To use id add dependency to your build script:
-
-For Maven:
-
-    <dependency>
-     <groupId>io.herrmann</groupId>
-     <artifactId>java-generator-functions</artifactId>
-     <version>1.0</version>
-    </dependency>
-
-For Gradle:
-
-    compile(group: 'io.herrmann', name: 'java-generator-functions', version: '1.0')
-
 Examples
 --------
 The following is a simple generator that yields `1` and then `2`:
@@ -49,6 +28,38 @@ Infinite generators are also possible:
     };
 
 The `Generator` class lies in package `io.herrmann.generator`. So you need to `import io.herrmann.generator.Generator;` in order for the above examples to work.
+
+Usage
+-----
+
+This package is hosted as a Maven repository with following url:
+
+    http://dl.bintray.com/filipmalczak/maven
+
+To use it from Maven, add the following to your `pom.xml`:
+
+    <project>
+        ...
+        <repositories>
+            ...
+            <repository>
+                <id>java-generator-functions</id>
+                <url>http://dl.bintray.com/filipmalczak/maven</url>
+            </repository>
+        </repositories>
+        ...
+        <dependencies>
+            <dependency>
+                <groupId>io.herrmann</groupId>
+                <artifactId>java-generator-functions</artifactId>
+                <version>1.0</version>
+            </dependency>
+        </dependencies>
+    </project>
+
+For Gradle:
+
+    compile(group: 'io.herrmann', name: 'java-generator-functions', version: '1.0')
 
 Performance
 -----------
