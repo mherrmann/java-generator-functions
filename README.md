@@ -63,7 +63,9 @@ For Gradle:
 
 Caveats and Performance
 -----------------------
-The `Generator` class internally works with a Thread to produce the items. It does ensure that no Threads stay around if the corresponding Generator is no longer used. However, **if too many `Generator`s are created before the JVM gets a chance to garbage collect the old ones, you may encounter `OutOfMemoryError`s. This problem most strongly presents itself on OS X where the maximum number of Threads is significantly lower than on other OSs (around 2000).**
+The `Generator` class internally works with a Thread to produce the items. It does ensure that no Threads stay around if the corresponding Generator is no longer used. However:
+
+**If too many `Generator`s are created before the JVM gets a chance to garbage collect the old ones, you may encounter `OutOfMemoryError`s. This problem most strongly presents itself on OS X where the maximum number of Threads is significantly lower than on other OSs (around 2000).**
 
 The performance is obviously not great but not too shabby either. On my machine with a dual core i5 CPU @ 2.67 GHz, 1000 items can be produced in < 0.03s.
 
