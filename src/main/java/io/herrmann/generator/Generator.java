@@ -49,13 +49,11 @@ public abstract class Generator<T> implements Iterable<T> {
 		return new Iterator<T>() {
 			@Override
 			public boolean hasNext() {
-				waitForNext();
-				return !hasFinished;
+				return waitForNext();
 			}
 			@Override
 			public T next() {
-				waitForNext();
-				if (hasFinished)
+				if (!waitForNext())
 					throw new NoSuchElementException();
 				nextItemAvailable = false;
 				return nextItem;
@@ -64,9 +62,11 @@ public abstract class Generator<T> implements Iterable<T> {
 			public void remove() {
 				throw new UnsupportedOperationException();
 			}
-			private void waitForNext() {
-				if (nextItemAvailable || hasFinished)
-					return;
+			private boolean waitForNext() {
+				if (nextItemAvailable)
+					return true;
+				if (hasFinished)
+					return false;
 				if (producer == null)
 					startProducer();
 				itemRequested.set();
@@ -77,6 +77,8 @@ public abstract class Generator<T> implements Iterable<T> {
 				}
 				if (exceptionRaisedByProducer != null)
 					throw exceptionRaisedByProducer;
+					
+				return !hasFinished
 			}
 		};
 	}
