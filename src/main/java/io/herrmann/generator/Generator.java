@@ -36,7 +36,7 @@ public abstract class Generator<T> implements Iterable<T> {
 
 	static ThreadGroup THREAD_GROUP;
 
-	Thread producer;
+	private Thread producer;
 	private boolean hasFinished;
 	private final Condition itemAvailableOrHasFinished = new Condition();
 	private final Condition itemRequested = new Condition();
