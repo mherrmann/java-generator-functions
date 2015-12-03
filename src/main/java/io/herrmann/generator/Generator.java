@@ -77,8 +77,7 @@ public abstract class Generator<T> implements Iterable<T> {
 				}
 				if (exceptionRaisedByProducer != null)
 					throw exceptionRaisedByProducer;
-					
-				return !hasFinished
+				return !hasFinished;
 			}
 		};
 	}
