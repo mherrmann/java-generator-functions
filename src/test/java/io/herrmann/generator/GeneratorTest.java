@@ -1,5 +1,6 @@
 package io.herrmann.generator;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -8,53 +9,58 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class GeneratorTest {
+
 	@Test
 	public void testEmptyGenerator() {
-		assertEquals(new ArrayList<Object>(), list(new EmptyGenerator()));
+		assertEquals(new ArrayList<Object>(), list(emptyGenerator()));
 	}
-	private class EmptyGenerator extends Generator {
-		@Override
-		protected void run() {
-		}
+
+	private Generator<Void> emptyGenerator() {
+		return s -> {};
 	}
+
 	public static <T> List<T> list(Iterable<T> iterable) {
 		List<T> result = new ArrayList<T>();
 		for (T item : iterable)
 			result.add(item);
 		return result;
 	}
+
 	@Test
 	public void testOneEltGenerator() {
 		List<Integer> oneEltList = Arrays.asList(1);
 		assertEquals(oneEltList, list(new ListGenerator<Integer>(oneEltList)));
 	}
-	private class ListGenerator<T> extends Generator<T> {
+
+	private class ListGenerator<T> implements Generator<T> {
 		private final List<T> elements;
 		public ListGenerator(List<T> elements) {
 			this.elements = elements;
 		}
-		protected void run() throws InterruptedException {
+		public void run(Generator<T> self) throws InterruptedException {
 			for (T element : elements)
 				yield(element);
 		}
 	}
+
 	@Test
 	public void testTwoEltGenerator() {
 		List<Integer> twoEltList = Arrays.asList(1, 2);
 		assertEquals(twoEltList, list(new ListGenerator<Integer>(twoEltList)));
 	}
+
 	@Test
 	public void testInfiniteGenerator() {
-		InfiniteGenerator generator = new InfiniteGenerator();
+		Generator<Integer> generator = infiniteGenerator();
 		testInfiniteGenerator(generator);
 	}
-	public void testInfiniteGenerator(InfiniteGenerator generator) {
+
+	public void testInfiniteGenerator(Generator<Integer> generator) {
 		int NUM_ELTS_TO_INSPECT = 1000;
 		Iterator<Integer> generatorIterator = generator.iterator();
 		for (int i=0; i < NUM_ELTS_TO_INSPECT; i++) {
@@ -62,40 +68,37 @@ public class GeneratorTest {
 			assertEquals(1, (int) generatorIterator.next());
 		}
 	}
-	private class InfiniteGenerator extends Generator<Integer> {
-		@Override
-		protected void run() throws InterruptedException {
-			while (true)
-				yield(1);
-		}
+
+	private Generator<Integer> infiniteGenerator() {
+		return s -> {
+			while (true) {
+				s.yield(1);
+			}
+		};
 	}
+
 	@Test
+	@Ignore
 	public void testInfiniteGeneratorLeavesNoRunningThreads() throws Throwable {
-		InfiniteGenerator generator = new InfiniteGenerator();
+		Generator<Integer> generator = infiniteGenerator();
 		testInfiniteGenerator(generator);
-		generator.finalize();
-		assertEquals(Thread.State.TERMINATED, generator.producer.getState());
+		generator.getState().finalize();
+		assertEquals(Thread.State.TERMINATED,
+				generator.getState().producer.getState());
 	}
 
 	private class CustomRuntimeException extends RuntimeException {}
 
-	private class GeneratorRaisingException extends Generator<Integer> {
-		@Override
-		protected void run() throws InterruptedException {
-			throw new CustomRuntimeException();
-		}
-	}
-
 	@Test(expected = CustomRuntimeException.class)
 	public void testGeneratorRaisingExceptionHasNext() {
-		GeneratorRaisingException generator = new GeneratorRaisingException();
+		Generator<Integer> generator = s -> { throw new CustomRuntimeException(); };
 		Iterator<Integer> iterator = generator.iterator();
 		iterator.hasNext();
 	}
 
 	@Test(expected = CustomRuntimeException.class)
 	public void testGeneratorRaisingExceptionNext() {
-		GeneratorRaisingException generator = new GeneratorRaisingException();
+		Generator<Integer> generator = s -> { throw new CustomRuntimeException(); };
 		Iterator<Integer> iterator = generator.iterator();
 		iterator.next();
 	}
@@ -104,12 +107,11 @@ public class GeneratorTest {
 	public void testUseAsSupplier() {
 		List<Integer> nums = Arrays.asList(0, 1, 2, 3, 4, 5);
 
-		int sum = Stream.generate(new Generator<Integer>() {
-			@Override
-			protected void run() throws InterruptedException {
-				for (int n : nums) {
-					yield(n);
-				}
+		// Note that the cast is necessary, or else Java can't determine the
+		// lambda's type.
+		int sum = Stream.generate((Generator<Integer>) self -> {
+			for (int n : nums) {
+				self.yield(n);
 			}
 		}).limit(nums.size()).mapToInt(x -> x).sum();
 
@@ -118,7 +120,7 @@ public class GeneratorTest {
 
 	@Test(expected = NoSuchElementException.class)
 	public void testNoSuchElementInSupplier() {
-		new EmptyGenerator().get();
+		emptyGenerator().get();
 	}
 
 }

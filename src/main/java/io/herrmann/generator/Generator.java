@@ -1,130 +1,61 @@
 package io.herrmann.generator;
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.function.Supplier;
 
 /**
- * This class allows specifying Python generator-like sequences. For examples,
- * see the JUnit test case.
+ * This functional interface allows specifying Python generator-like sequences.
+ * For examples, see the JUnit test case.
  *
  * The implementation uses a separate Thread to produce the sequence items. This
  * is certainly not as fast as eg. a for-loop, but not horribly slow either. On
  * a machine with a dual core i5 CPU @ 2.67 GHz, 1000 items can be produced in
  * &lt; 0.03s.
  *
- * By overriding finalize(), the class takes care not to leave any Threads
- * running longer than necessary.
+ * By overriding finalize(), the underlying class takes care not to leave any
+ * Threads running longer than necessary.
  */
-public abstract class Generator<T> implements Iterable<T>, Supplier<T> {
+@FunctionalInterface
+public interface Generator<T> extends Iterable<T>, Supplier<T> {
 
-	private class Condition {
-		private boolean isSet;
-		public synchronized void set() {
-			isSet = true;
-			notify();
+	// Workaround for the fact that interfaces can't have state.
+	// I don't know how to make this type-safe without doing something really
+	// hacky or re-implementing WeakHashMap, but at least it's package-private.
+	static Map<Generator<?>, GeneratorState<?>> states = new WeakHashMap<>();
+
+	@SuppressWarnings("unchecked")
+	default GeneratorState<T> getState() {
+		synchronized (states) {
+			if (!states.containsKey(this)) {
+				states.put(this, new GeneratorState<T>(this));
+			}
+
+			return (GeneratorState<T>) states.get(this);
 		}
-		public synchronized void await() throws InterruptedException {
-			try {
-				if (isSet)
-					return;
-				wait();
-			} finally {
-				isSet = false;
-			}
-		}
-	}
-
-	static ThreadGroup THREAD_GROUP;
-
-	Thread producer;
-	private boolean hasFinished;
-	private final Condition itemAvailableOrHasFinished = new Condition();
-	private final Condition itemRequested = new Condition();
-	private T nextItem;
-	private boolean nextItemAvailable;
-	private RuntimeException exceptionRaisedByProducer;
-
-	// Used to implement the get() method
-	private Iterator<T> getter = this.iterator();
-
-	@Override
-	public Iterator<T> iterator() {
-		return new Iterator<T>() {
-			@Override
-			public boolean hasNext() {
-				return waitForNext();
-			}
-			@Override
-			public T next() {
-				if (!waitForNext())
-					throw new NoSuchElementException();
-				nextItemAvailable = false;
-				return nextItem;
-			}
-			@Override
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
-			private boolean waitForNext() {
-				if (nextItemAvailable)
-					return true;
-				if (hasFinished)
-					return false;
-				if (producer == null)
-					startProducer();
-				itemRequested.set();
-				try {
-					itemAvailableOrHasFinished.await();
-				} catch (InterruptedException e) {
-					hasFinished = true;
-				}
-				if (exceptionRaisedByProducer != null)
-					throw exceptionRaisedByProducer;
-				return !hasFinished;
-			}
-		};
-	}
-
-	protected abstract void run() throws InterruptedException;
-
-	protected void yield(T element) throws InterruptedException {
-		nextItem = element;
-		nextItemAvailable = true;
-		itemAvailableOrHasFinished.set();
-		itemRequested.await();
-	}
-
-	private void startProducer() {
-		assert producer == null;
-		if (THREAD_GROUP == null)
-			THREAD_GROUP = new ThreadGroup("generatorfunctions");
-		producer = new Thread(THREAD_GROUP, () -> {
-			try {
-				itemRequested.await();
-				Generator.this.run();
-			} catch (InterruptedException e) {
-				// No need to do anything here; Remaining steps in run()
-				// will cleanly shut down the thread.
-			} catch (RuntimeException e) {
-				exceptionRaisedByProducer = e;
-			}
-			hasFinished = true;
-			itemAvailableOrHasFinished.set();
-		});
-		producer.setDaemon(true);
-		producer.start();
 	}
 
 	@Override
-	public T get() {
-		return getter.next();
+	public default Iterator<T> iterator() {
+		return getState().iterator();
+	}
+
+	// The idea of using self is thanks to srborlongan's answer on StackOverflow
+	// here: http://stackoverflow.com/a/28780894/2093695
+	public void run(Generator<T> self) throws InterruptedException;
+
+	public default void yield(T element) throws InterruptedException {
+		getState().yield(element);
 	}
 
 	@Override
-	protected void finalize() throws Throwable {
-		producer.interrupt();
-		producer.join();
-		super.finalize();
+	public default T get() {
+		return getState().get();
 	}
+
+	public static <T> Generator<T> from(Generator<T> gen) {
+		return s -> gen.run(s);
+	}
+
 }
