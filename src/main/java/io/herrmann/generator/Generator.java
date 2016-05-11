@@ -2,6 +2,7 @@ package io.herrmann.generator;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.Supplier;
 
 /**
  * This class allows specifying Python generator-like sequences. For examples,
@@ -15,7 +16,7 @@ import java.util.NoSuchElementException;
  * By overriding finalize(), the class takes care not to leave any Threads
  * running longer than necessary.
  */
-public abstract class Generator<T> implements Iterable<T> {
+public abstract class Generator<T> implements Iterable<T>, Supplier<T> {
 
 	private class Condition {
 		private boolean isSet;
@@ -43,6 +44,9 @@ public abstract class Generator<T> implements Iterable<T> {
 	private T nextItem;
 	private boolean nextItemAvailable;
 	private RuntimeException exceptionRaisedByProducer;
+
+	// Used to implement the get() method
+	private Iterator<T> getter = this.iterator();
 
 	@Override
 	public Iterator<T> iterator() {
@@ -110,6 +114,11 @@ public abstract class Generator<T> implements Iterable<T> {
 		});
 		producer.setDaemon(true);
 		producer.start();
+	}
+
+	@Override
+	public T get() {
+		return getter.next();
 	}
 
 	@Override

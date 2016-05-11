@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -95,6 +98,27 @@ public class GeneratorTest {
 		GeneratorRaisingException generator = new GeneratorRaisingException();
 		Iterator<Integer> iterator = generator.iterator();
 		iterator.next();
+	}
+
+	@Test
+	public void testUseAsSupplier() {
+		List<Integer> nums = Arrays.asList(0, 1, 2, 3, 4, 5);
+
+		int sum = Stream.generate(new Generator<Integer>() {
+			@Override
+			protected void run() throws InterruptedException {
+				for (int n : nums) {
+					yield(n);
+				}
+			}
+		}).limit(nums.size()).mapToInt(x -> x).sum();
+
+		assertEquals(sum, nums.stream().mapToInt(x -> x).sum());
+	}
+
+	@Test(expected = NoSuchElementException.class)
+	public void testNoSuchElementInSupplier() {
+		new EmptyGenerator().get();
 	}
 
 }
