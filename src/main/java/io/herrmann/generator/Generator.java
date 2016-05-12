@@ -48,4 +48,14 @@ public interface Generator<T> extends Iterable<T>, Supplier<T> {
 		return getState().get();
 	}
 
+	/**
+	 * Reset a <i>stateless</i> generator so that its get() method behaves as
+	 * though it has never been called. A generator is stateless if its {@link
+	 * #run(GeneratorIterator)} method has no sideffects. This is useful when
+	 * creating several streams from the same generator.
+	 */
+	public default void reset() {
+		getState().reset();
+	}
+
 }

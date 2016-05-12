@@ -119,4 +119,28 @@ public class GeneratorTest {
 		emptyGenerator.get();
 	}
 
+	@Test
+	public void testReset() {
+		Generator<Integer> naturalNumbers = s -> {
+			int i = 0;
+			while (true) {
+				s.yield(i++);
+			}
+		};
+
+		// sum of 0-4
+		int sum = Stream.generate(naturalNumbers)
+				.limit(5).mapToInt(x -> x).sum();
+
+		assertEquals(sum, 10);
+
+		naturalNumbers.reset();
+
+		// sum of 0-9
+		sum = Stream.generate(naturalNumbers)
+				.limit(10).mapToInt(x -> x).sum();
+
+		assertEquals(sum, 45);
+	}
+
 }

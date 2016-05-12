@@ -33,4 +33,8 @@ class GeneratorState<T> implements Iterable<T>, Supplier<T> {
 		return getter.next();
 	}
 
+	public void reset() {
+		getter = iterator();
+	}
+
 }
