@@ -1,12 +1,16 @@
 package io.herrmann.generator;
 
+import static org.hamcrest.core.Is.*;
 import org.junit.Test;
 
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
@@ -112,6 +116,29 @@ public class GeneratorTest {
 		}).limit(nums.size()).mapToInt(x -> x).sum();
 
 		assertEquals(sum, nums.stream().mapToInt(x -> x).sum());
+
+		// A slightly more realistic usage example: generate a list of lattice
+		// points in a given rectangle
+		Rectangle r = new Rectangle(2, 3, 2, 1);
+		List<Point> ps = Stream.generate((Generator<Point>) s -> {
+			for (int x = 0; x < 10; x++) {
+				for (int y = 0; y < 10; y ++) {
+					s.yield(new Point(x, y));
+				}
+			}
+		}).limit(100)//.parallel() -- currently not thread safe
+				.filter(r::contains)
+				.collect(Collectors.toList());
+
+		// Generate it the old fashioned way for comparison
+		List<Point> ps2 = new ArrayList<>();
+		for (int x = r.x; x < r.x + r.width; x++) {
+			for (int y = r.y; y < r.y + r.height; y++) {
+				ps2.add(new Point(x, y));
+			}
+		}
+
+		assertEquals(ps2, ps);
 	}
 
 	@Test(expected = NoSuchElementException.class)
