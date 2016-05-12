@@ -1,6 +1,5 @@
 package io.herrmann.generator;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -15,13 +14,17 @@ import static org.junit.Assert.assertTrue;
 
 public class GeneratorTest {
 
+	private static Generator<Void> emptyGenerator = s -> {};
+
+	private static Generator<Integer> infiniteGenerator = s -> {
+		while (true) {
+			s.yield(1);
+		}
+	};
+
 	@Test
 	public void testEmptyGenerator() {
-		assertEquals(new ArrayList<Object>(), list(emptyGenerator()));
-	}
-
-	private Generator<Void> emptyGenerator() {
-		return s -> {};
+		assertEquals(new ArrayList<Object>(), list(emptyGenerator));
 	}
 
 	public static <T> List<T> list(Iterable<T> iterable) {
@@ -42,9 +45,10 @@ public class GeneratorTest {
 		public ListGenerator(List<T> elements) {
 			this.elements = elements;
 		}
-		public void run(Generator<T> self) throws InterruptedException {
+
+		public void run(GeneratorIterator<T> self) throws InterruptedException {
 			for (T element : elements)
-				yield(element);
+				self.yield(element);
 		}
 	}
 
@@ -56,35 +60,27 @@ public class GeneratorTest {
 
 	@Test
 	public void testInfiniteGenerator() {
-		Generator<Integer> generator = infiniteGenerator();
-		testInfiniteGenerator(generator);
+		Generator<Integer> generator = infiniteGenerator;
+		testInfiniteGenerator(generator.iterator());
 	}
 
-	public void testInfiniteGenerator(Generator<Integer> generator) {
+	public void testInfiniteGenerator(Iterator<Integer> generatorIterator) {
 		int NUM_ELTS_TO_INSPECT = 1000;
-		Iterator<Integer> generatorIterator = generator.iterator();
 		for (int i=0; i < NUM_ELTS_TO_INSPECT; i++) {
 			assertTrue(generatorIterator.hasNext());
 			assertEquals(1, (int) generatorIterator.next());
 		}
 	}
 
-	private Generator<Integer> infiniteGenerator() {
-		return s -> {
-			while (true) {
-				s.yield(1);
-			}
-		};
-	}
-
 	@Test
-	@Ignore
 	public void testInfiniteGeneratorLeavesNoRunningThreads() throws Throwable {
-		Generator<Integer> generator = infiniteGenerator();
-		testInfiniteGenerator(generator);
-		generator.getState().finalize();
+		Generator<Integer> generator = infiniteGenerator;
+		GeneratorIterator<Integer> iterator =
+				(GeneratorIterator<Integer>) generator.iterator();
+		testInfiniteGenerator(iterator);
+		iterator.finalize();
 		assertEquals(Thread.State.TERMINATED,
-				generator.getState().producer.getState());
+				iterator.producer.getState());
 	}
 
 	private class CustomRuntimeException extends RuntimeException {}
@@ -120,7 +116,7 @@ public class GeneratorTest {
 
 	@Test(expected = NoSuchElementException.class)
 	public void testNoSuchElementInSupplier() {
-		emptyGenerator().get();
+		emptyGenerator.get();
 	}
 
 }

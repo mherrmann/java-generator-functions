@@ -41,21 +41,11 @@ public interface Generator<T> extends Iterable<T>, Supplier<T> {
 		return getState().iterator();
 	}
 
-	// The idea of using self is thanks to srborlongan's answer on StackOverflow
-	// here: http://stackoverflow.com/a/28780894/2093695
-	public void run(Generator<T> self) throws InterruptedException;
-
-	public default void yield(T element) throws InterruptedException {
-		getState().yield(element);
-	}
+	public void run(GeneratorIterator<T> gen) throws InterruptedException;
 
 	@Override
 	public default T get() {
 		return getState().get();
-	}
-
-	public static <T> Generator<T> from(Generator<T> gen) {
-		return s -> gen.run(s);
 	}
 
 }
