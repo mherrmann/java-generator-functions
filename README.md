@@ -1,18 +1,16 @@
 java-generator-functions
 ========================
 
-An implementation of Python-like generator functions in Java. This repository contains a single class, `Generator` with a method `yield(...)` which can be used to mimic the behaviour of the `yield` keyword in Python.
+An implementation of Python-like generator functions in Java. This repository contains a functional interface, `Generator`, which accepts an object with a method, `yield(...)`, that can be used to mimic the behaviour of the `yield` keyword in Python.
 
 Examples
 --------
 The following is a simple generator that yields `1` and then `2`:
 
-    Generator<Integer> simpleGenerator = new Generator<Integer>() {
-        public void run() throws InterruptedException {
-            yield(1);
-            // Some logic here...
-            yield(2);
-        }
+    Generator<Integer> simpleGenerator = s -> {
+        s.yield(1);
+        // Some logic here...
+        s.yield(2);
     };
     for (Integer element : simpleGenerator)
         System.out.println(element);
@@ -20,12 +18,21 @@ The following is a simple generator that yields `1` and then `2`:
 
 Infinite generators are also possible:
 
-    Generator<Integer> infiniteGenerator = new Generator<Integer>() {
-        public void run() throws InterruptedException {
-            while (true)
-                yield(1);
-        }
+    Generator<Integer> infiniteGenerator = s -> {
+        while (true)
+            s.yield(1);
     };
+
+Since `Generator` extends `Supplier`, you can even use a generator to create a `Stream`:
+
+    Stream.generate((Generator<Point>) s -> {
+        int i = 0;
+        while (true) {
+            s.yield(i++);
+        }
+    }).limit(100).map(...) // and so on
+
+Unfortunately, it is not currently thread safe, so it can't be used in a parallel stream (yet).
 
 The `Generator` class lies in package `io.herrmann.generator`. So you need to `import io.herrmann.generator.Generator;` in order for the above examples to work.
 
@@ -63,11 +70,13 @@ For Gradle:
 
 Caveats and Performance
 -----------------------
-The `Generator` class internally works with a Thread to produce the items. It does ensure that no Threads stay around if the corresponding Generator is no longer used. However:
+The `Generator` library internally works with a Thread to produce the items. It does ensure that no Threads stay around if the corresponding Generator is no longer used. However:
 
 **If too many `Generator`s are created before the JVM gets a chance to garbage collect the old ones, you may encounter `OutOfMemoryError`s. This problem most strongly presents itself on OS X where the maximum number of Threads is significantly lower than on other OSs (around 2000).**
 
 The performance is obviously not great but not too shabby either. On my machine with a dual core i5 CPU @ 2.67 GHz, 1000 items can be produced in < 0.03s.
+
+This version requires Java 8, as it takes advantage of functional interfaces in its API.
 
 Contributing
 ------------
