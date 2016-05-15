@@ -28,7 +28,7 @@ Generator<Integer> infiniteGenerator = s -> {
 };
 ```
 
-Since you can even use a generator to create a (parallel) `Stream`:
+You can even use a generator to create a (parallel) `Stream`:
 
 ```java
 // Note that the generic parameter is necessary, or else Java can't determine
@@ -40,6 +40,8 @@ Generator.<Integer>stream(s -> {
     }
 }).limit(100).parallel() // and so on
 ```
+
+For more examples, see [GeneratorTest.java](src/test/java/io/herrmann/generator/GeneratorTest.java).
 
 The `Generator` class lies in package `io.herrmann.generator`. So you need to `import io.herrmann.generator.Generator;` in order for the above examples to work.
 
@@ -85,9 +87,9 @@ The `Generator` library internally works with a Thread to produce the items. It 
 
 **If too many `Generator`s are created before the JVM gets a chance to garbage collect the old ones, you may encounter `OutOfMemoryError`s. This problem most strongly presents itself on OS X where the maximum number of Threads is significantly lower than on other OSs (around 2000).**
 
-The performance is obviously not great but not too shabby either. On my machine with a dual core i5 CPU @ 2.67 GHz, 1000 items can be produced in < 0.03s.
+The performance is obviously not great, but not too shabby either. On my machine with a dual core i5 CPU @ 2.67 GHz, 1000 items can be produced in < 0.03s.
 
-This version requires Java 8, as it takes advantage of functional interfaces in its API.
+This version requires Java 8, as it takes advantage of functional interfaces in its API and provides integration with the Streams API.
 
 Contributing
 ------------
