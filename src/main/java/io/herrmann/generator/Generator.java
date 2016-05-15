@@ -1,9 +1,10 @@
 package io.herrmann.generator;
 
 import java.util.Iterator;
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.function.Supplier;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * This functional interface allows specifying Python generator-like sequences.
@@ -14,27 +15,11 @@ import java.util.function.Supplier;
  * a machine with a dual core i5 CPU @ 2.67 GHz, 1000 items can be produced in
  * &lt; 0.03s.
  *
- * By overriding finalize(), the underlying class takes care not to leave any
+ * By overriding finalize(), the underlying iterator takes care not to leave any
  * Threads running longer than necessary.
  */
 @FunctionalInterface
-public interface Generator<T> extends Iterable<T>, Supplier<T> {
-
-	// Workaround for the fact that interfaces can't have state.
-	// I don't know how to make this type-safe without doing something really
-	// hacky or re-implementing WeakHashMap, but at least it's package-private.
-	static Map<Generator<?>, GeneratorIterator<?>> iters = new WeakHashMap<>();
-
-	@SuppressWarnings("unchecked")
-	default GeneratorIterator<T> getIterator() {
-		synchronized (iters) {
-			if (!iters.containsKey(this)) {
-				iters.put(this, new GeneratorIterator<>(this));
-			}
-
-			return (GeneratorIterator<T>) iters.get(this);
-		}
-	}
+public interface Generator<T> extends Iterable<T> {
 
 	@Override
 	public default Iterator<T> iterator() {
@@ -43,21 +28,24 @@ public interface Generator<T> extends Iterable<T>, Supplier<T> {
 
 	public void run(GeneratorIterator<T> gen) throws InterruptedException;
 
+	/**
+	 * Returns an ordered {@link Spliterator} consisting of elements yielded by
+	 * this {@link Generator}.
+	 */
 	@Override
-	public default T get() {
-		return getIterator().next();
+	default Spliterator<T> spliterator() {
+		return Spliterators.spliteratorUnknownSize(iterator(),
+				Spliterator.ORDERED);
 	}
 
 	/**
-	 * Reset a <i>stateless</i> generator so that its get() method behaves as
-	 * though it has never been called. A generator is stateless if its {@link
-	 * #run(GeneratorIterator)} method has no sideffects. This is useful when
-	 * creating several streams from the same generator.
+	 * Creates a {@link Stream} from a {@link Generator}.
+	 * @param g The generator
+	 * @return An ordered, sequential (non-parallel) stream of elements yielded
+	 * by the generator
 	 */
-	public default void reset() {
-		synchronized (iters) {
-			iters.put(this, new GeneratorIterator<>(this));
-		}
+	public static <T> Stream<T> stream(Generator<T> g) {
+		return StreamSupport.stream(g.spliterator(), false);
 	}
 
 }
