@@ -23,29 +23,29 @@ public interface Generator<T> extends Iterable<T>, Supplier<T> {
 	// Workaround for the fact that interfaces can't have state.
 	// I don't know how to make this type-safe without doing something really
 	// hacky or re-implementing WeakHashMap, but at least it's package-private.
-	static Map<Generator<?>, GeneratorState<?>> states = new WeakHashMap<>();
+	static Map<Generator<?>, GeneratorIterator<?>> iters = new WeakHashMap<>();
 
 	@SuppressWarnings("unchecked")
-	default GeneratorState<T> getState() {
-		synchronized (states) {
-			if (!states.containsKey(this)) {
-				states.put(this, new GeneratorState<T>(this));
+	default GeneratorIterator<T> getIterator() {
+		synchronized (iters) {
+			if (!iters.containsKey(this)) {
+				iters.put(this, new GeneratorIterator<>(this));
 			}
 
-			return (GeneratorState<T>) states.get(this);
+			return (GeneratorIterator<T>) iters.get(this);
 		}
 	}
 
 	@Override
 	public default Iterator<T> iterator() {
-		return getState().iterator();
+		return new GeneratorIterator<>(this);
 	}
 
 	public void run(GeneratorIterator<T> gen) throws InterruptedException;
 
 	@Override
 	public default T get() {
-		return getState().get();
+		return getIterator().next();
 	}
 
 	/**
@@ -55,7 +55,9 @@ public interface Generator<T> extends Iterable<T>, Supplier<T> {
 	 * creating several streams from the same generator.
 	 */
 	public default void reset() {
-		getState().reset();
+		synchronized (iters) {
+			iters.put(this, new GeneratorIterator<>(this));
+		}
 	}
 
 }
