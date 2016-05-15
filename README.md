@@ -28,18 +28,18 @@ Generator<Integer> infiniteGenerator = s -> {
 };
 ```
 
-Since `Generator` extends `Supplier`, you can even use a generator to create a `Stream`:
+Since you can even use a generator to create a (parallel) `Stream`:
 
 ```java
-Stream.generate((Generator<Point>) s -> {
+// Note that the generic parameter is necessary, or else Java can't determine
+// the generator's type.
+Generator.<Integer>stream(s -> {
     int i = 0;
     while (true) {
         s.yield(i++);
     }
-}).limit(100).map(...) // and so on
+}).limit(100).parallel() // and so on
 ```
-
-Unfortunately, it is not currently thread safe, so it can't be used in a parallel stream (yet).
 
 The `Generator` class lies in package `io.herrmann.generator`. So you need to `import io.herrmann.generator.Generator;` in order for the above examples to work.
 
