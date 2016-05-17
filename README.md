@@ -1,14 +1,14 @@
 java-generator-functions
 ========================
 
-An implementation of Python-like generator functions in Java. This repository contains a functional interface, `Generator`, which accepts an object with a method, `yield(...)`, that can be used to mimic the behaviour of the `yield` keyword in Python.
+An implementation of Python-like generator functions in Java. This repository contains a functional interface, `GeneratorFunc`, which accepts an object with a method, `yield(...)`, that can be used to mimic the behaviour of the `yield` keyword in Python.
 
 Examples
 --------
 The following is a simple generator that yields `1` and then `2`:
 
 ```java
-Generator<Integer> simpleGenerator = s -> {
+GeneratorFunc<Integer> simpleGenerator = s -> {
     s.yield(1);
     // Some logic here...
     s.yield(2);
@@ -22,7 +22,7 @@ for (Integer element : simpleGenerator)
 Infinite generators are also possible:
 
 ```java
-Generator<Integer> infiniteGenerator = s -> {
+GeneratorFunc<Integer> infiniteGenerator = s -> {
     while (true)
         s.yield(1);
 };
@@ -41,9 +41,20 @@ Generator.<Integer>stream(s -> {
 }).limit(100).parallel() // and so on
 ```
 
+If you need to use an anonymous inner class, it is more concise to have it extend `Generator`, at the cost of losing statelessness:
+
+```
+Generator<Integer> infiniteGenerator = new Generator<Integer>() {
+    public void run() throws InterruptedException {
+        while (true)
+            yield(1);
+    }
+};
+```
+
 For more examples, see [GeneratorTest.java](src/test/java/io/herrmann/generator/GeneratorTest.java).
 
-The `Generator` class lies in package `io.herrmann.generator`. So you need to `import io.herrmann.generator.Generator;` in order for the above examples to work.
+The `Generator` class and `GeneratorFunc` interface lie in the package `io.herrmann.generator`, so you need to `import io.herrmann.generator.*;` in order for the above examples to work.
 
 Usage
 -----
