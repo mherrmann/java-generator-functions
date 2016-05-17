@@ -43,7 +43,7 @@ Generator.<Integer>stream(s -> {
 
 If you need to use an anonymous inner class, it is more concise to have it extend `Generator`, at the cost of losing statelessness:
 
-```
+```java
 Generator<Integer> infiniteGenerator = new Generator<Integer>() {
     public void run() throws InterruptedException {
         while (true)
