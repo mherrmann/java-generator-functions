@@ -184,4 +184,31 @@ public class GeneratorTest {
 		assertEquals(1836311902, sum2);
 	}
 
+	@Test
+	public void testReset() {
+		Generator<Integer> naturalNumbers = new Generator<Integer>() {
+			@Override
+			protected void run() throws InterruptedException {
+				int i = 0;
+				while (true) {
+					yield(i++);
+				}
+			}
+		};
+
+		// sum of 0-4
+		int sum = Generator.stream(naturalNumbers)
+				.limit(5).mapToInt(x -> x).sum();
+
+		assertEquals(sum, 10);
+
+		naturalNumbers.reset();
+
+		// sum of 0-9
+		sum = Generator.stream(naturalNumbers)
+				.limit(10).mapToInt(x -> x).sum();
+
+		assertEquals(sum, 45);
+	}
+
 }
