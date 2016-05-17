@@ -19,9 +19,9 @@ import static org.junit.Assert.assertTrue;
 
 public class GeneratorTest {
 
-	private static Generator<Void> emptyGenerator = s -> {};
+	private static GeneratorFunc<Void> emptyGenerator = s -> {};
 
-	private static Generator<Integer> infiniteGenerator = s -> {
+	private static GeneratorFunc<Integer> infiniteGenerator = s -> {
 		while (true) {
 			s.yield(1);
 		}
@@ -45,15 +45,15 @@ public class GeneratorTest {
 		assertEquals(oneEltList, list(new ListGenerator<Integer>(oneEltList)));
 	}
 
-	private class ListGenerator<T> implements Generator<T> {
+	private class ListGenerator<T> extends Generator<T> {
 		private final List<T> elements;
 		public ListGenerator(List<T> elements) {
 			this.elements = elements;
 		}
 
-		public void run(GeneratorIterator<T> self) throws InterruptedException {
+		public void run() throws InterruptedException {
 			for (T element : elements)
-				self.yield(element);
+				yield(element);
 		}
 	}
 
@@ -65,7 +65,7 @@ public class GeneratorTest {
 
 	@Test
 	public void testInfiniteGenerator() {
-		Generator<Integer> generator = infiniteGenerator;
+		GeneratorFunc<Integer> generator = infiniteGenerator;
 		testInfiniteGenerator(generator.iterator());
 	}
 
@@ -79,7 +79,7 @@ public class GeneratorTest {
 
 	@Test
 	public void testInfiniteGeneratorLeavesNoRunningThreads() throws Throwable {
-		Generator<Integer> generator = infiniteGenerator;
+		GeneratorFunc<Integer> generator = infiniteGenerator;
 		GeneratorIterator<Integer> iterator =
 				(GeneratorIterator<Integer>) generator.iterator();
 		testInfiniteGenerator(iterator);
@@ -92,14 +92,14 @@ public class GeneratorTest {
 
 	@Test(expected = CustomRuntimeException.class)
 	public void testGeneratorRaisingExceptionHasNext() {
-		Generator<Integer> generator = s -> { throw new CustomRuntimeException(); };
+		GeneratorFunc<Integer> generator = s -> { throw new CustomRuntimeException(); };
 		Iterator<Integer> iterator = generator.iterator();
 		iterator.hasNext();
 	}
 
 	@Test(expected = CustomRuntimeException.class)
 	public void testGeneratorRaisingExceptionNext() {
-		Generator<Integer> generator = s -> { throw new CustomRuntimeException(); };
+		GeneratorFunc<Integer> generator = s -> { throw new CustomRuntimeException(); };
 		Iterator<Integer> iterator = generator.iterator();
 		iterator.next();
 	}
@@ -156,15 +156,21 @@ public class GeneratorTest {
 
 		assertEquals(ps2, ps);
 		assertEquals(ps2, ps1);
+	}
 
+	@Test
+	public void testGeneratorClassUseInParallelStream() {
 		// An infinite generator for fibonacci numbers!
-		Generator<Integer> fibs = s -> {
-			int a = 0, b = 1;
-			while (true) {
-				s.yield(a);
-				int next = a + b;
-				a = b;
-				b = next;
+		Generator<Integer> fibs = new Generator<Integer>() {
+			@Override
+			protected void run() throws InterruptedException {
+				int a = 0, b = 1;
+				while (true) {
+					yield(a);
+					int next = a + b;
+					a = b;
+					b = next;
+				}
 			}
 		};
 

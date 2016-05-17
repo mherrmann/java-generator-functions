@@ -1,50 +1,41 @@
 package io.herrmann.generator;
 
 import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * This functional interface allows specifying Python generator-like sequences.
- * For examples, see the JUnit test case.
- *
- * The implementation uses a separate Thread to produce the sequence items. This
- * is certainly not as fast as eg. a for-loop, but not horribly slow either. On
- * a machine with a dual core i5 CPU @ 2.67 GHz, 1000 items can be produced in
- * &lt; 0.03s.
- *
- * By overriding finalize(), the underlying iterator takes care not to leave any
- * Threads running longer than necessary.
+ * Implementation of {@link GeneratorFunc} as an abstract class. This class
+ * mainly exists for backwards compatibility, but it can also cut down some of
+ * the boilerplate when using an anonymous inner class instead of a lambda.
  */
-@FunctionalInterface
-public interface Generator<T> extends Iterable<T> {
+public abstract class Generator<T> implements GeneratorFunc<T> {
+
+	private GeneratorIterator<T> iter = new GeneratorIterator<>(this);
 
 	@Override
-	public default Iterator<T> iterator() {
-		return new GeneratorIterator<>(this);
+	public void run(GeneratorIterator<T> gen) throws InterruptedException {
+		run();
 	}
 
-	public void run(GeneratorIterator<T> gen) throws InterruptedException;
+	protected abstract void run() throws InterruptedException;
 
-	/**
-	 * Returns an ordered {@link Spliterator} consisting of elements yielded by
-	 * this {@link Generator}.
-	 */
+	protected void yield(T element) throws InterruptedException {
+		iter.yield(element);
+	}
+
 	@Override
-	default Spliterator<T> spliterator() {
-		return Spliterators.spliteratorUnknownSize(iterator(),
-				Spliterator.ORDERED);
+	public Iterator<T> iterator() {
+		return iter;
 	}
 
 	/**
-	 * Creates a {@link Stream} from a {@link Generator}.
+	 * Creates a {@link Stream} from a {@link GeneratorFunc}.
 	 * @param g The generator
 	 * @return An ordered, sequential (non-parallel) stream of elements yielded
 	 * by the generator
 	 */
-	public static <T> Stream<T> stream(Generator<T> g) {
+	public static <T> Stream<T> stream(GeneratorFunc<T> g) {
 		return StreamSupport.stream(g.spliterator(), false);
 	}
 

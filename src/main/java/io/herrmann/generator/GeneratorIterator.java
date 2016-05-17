@@ -6,16 +6,17 @@ import java.util.Objects;
 
 /**
  * This is the class that contains most of the logic for the {@link Generator}
- * class. It is possible to create several of these for one generator, but use
- * with caution if the generator function is not stateless.
+ * and {@link GeneratorFunc} classes. It is possible to create several of these
+ * for one {@link GeneratorFunc}, but use with caution if the generator function
+ * is not stateless.
  */
 public final class GeneratorIterator<T> implements Iterator<T> {
 
 	static ThreadGroup THREAD_GROUP;
 
-	Generator<T> gen;
+	GeneratorFunc<T> gen;
 
-	public GeneratorIterator(Generator<T> gen) {
+	public GeneratorIterator(GeneratorFunc<T> gen) {
 		Objects.requireNonNull(gen);
 		this.gen = gen;
 	}
@@ -91,7 +92,7 @@ public final class GeneratorIterator<T> implements Iterator<T> {
 	private void startProducer() {
 		if (producer != null) {
 			throw new IllegalStateException(
-				"Can't use the same Generator twice!");
+				"Can't use the same GeneratorIterator twice!");
 		}
 
 		if (THREAD_GROUP == null)
