@@ -52,6 +52,8 @@ Generator<Integer> infiniteGenerator = new Generator<Integer>() {
 };
 ```
 
+If you do this, you can only iterate over it once or create one stream from it, unless you call its `reset()` method.
+
 For more examples, see [GeneratorTest.java](src/test/java/io/herrmann/generator/GeneratorTest.java).
 
 The `Generator` class and `GeneratorFunc` interface lie in the package `io.herrmann.generator`, so you need to `import io.herrmann.generator.*;` in order for the above examples to work.
@@ -100,7 +102,7 @@ The `Generator` library internally works with a Thread to produce the items. It 
 
 The performance is obviously not great, but not too shabby either. On my machine with a dual core i5 CPU @ 2.67 GHz, 1000 items can be produced in < 0.03s.
 
-This version requires Java 8, as it takes advantage of functional interfaces in its API and provides integration with the Streams API.
+This version requires Java 8, as it takes advantage of functional interfaces in its API and provides integration with the Streams API. If you need support for an older version of Java, use version 1.0 of this library.
 
 Contributing
 ------------
