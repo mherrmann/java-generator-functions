@@ -185,7 +185,7 @@ public class GeneratorTest {
 	}
 
 	@Test
-	public void testReset() {
+	public void testReuseGeneratorClass() {
 		Generator<Integer> naturalNumbers = new Generator<Integer>() {
 			@Override
 			protected void run() throws InterruptedException {
@@ -201,8 +201,6 @@ public class GeneratorTest {
 				.limit(5).mapToInt(x -> x).sum();
 
 		assertEquals(sum, 10);
-
-		naturalNumbers.reset();
 
 		// sum of 0-9
 		sum = Generator.stream(naturalNumbers)
