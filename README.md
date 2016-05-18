@@ -52,7 +52,7 @@ Generator<Integer> infiniteGenerator = new Generator<Integer>() {
 };
 ```
 
-If you do this, you can only iterate over it once or create one stream from it, unless you call its `reset()` method.
+You can iterate over a generator multiple times, resulting in multiple calls to the lambda or `run` method. If the generator modifies some state, you can expect that state to be modified each time you iterate over the generator (or create a `Stream` from it).
 
 For more examples, see [GeneratorTest.java](src/test/java/io/herrmann/generator/GeneratorTest.java).
 
