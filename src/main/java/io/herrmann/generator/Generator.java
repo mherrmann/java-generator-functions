@@ -33,10 +33,14 @@ public abstract class Generator<T> implements GeneratorFunc<T> {
 	}
 
 	/**
-	 * Creates a {@link Stream} from a {@link GeneratorFunc}.
+	 * Creates a {@link Stream} from a {@link GeneratorFunc}. For cases where
+	 * the generator isn't a lambda passed directly, the instance method {@link
+	 * #stream()} is generally more concise.
+	 *
 	 * @param g The generator
 	 * @return An ordered, sequential (non-parallel) stream of elements yielded
 	 * by the generator
+	 * @see #stream()
 	 */
 	public static <T> Stream<T> stream(GeneratorFunc<T> g) {
 		return StreamSupport.stream(g.spliterator(), false);

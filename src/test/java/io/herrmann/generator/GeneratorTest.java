@@ -4,15 +4,8 @@ import org.junit.Test;
 
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
+import java.util.*;
+import java.util.stream.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -34,8 +27,7 @@ public class GeneratorTest {
 
 	public static <T> List<T> list(Iterable<T> iterable) {
 		List<T> result = new ArrayList<T>();
-		for (T item : iterable)
-			result.add(item);
+		iterable.forEach(result::add);
 		return result;
 	}
 
@@ -60,7 +52,7 @@ public class GeneratorTest {
 	@Test
 	public void testTwoEltGenerator() {
 		List<Integer> twoEltList = Arrays.asList(1, 2);
-		assertEquals(twoEltList, list(new ListGenerator<Integer>(twoEltList)));
+		assertEquals(twoEltList, list(new ListGenerator<>(twoEltList)));
 	}
 
 	@Test
@@ -88,6 +80,7 @@ public class GeneratorTest {
 				iterator.producer.getState());
 	}
 
+	@SuppressWarnings("serial")
 	private class CustomRuntimeException extends RuntimeException {}
 
 	@Test(expected = CustomRuntimeException.class)
@@ -125,13 +118,15 @@ public class GeneratorTest {
 		// points in a given rectangle
 		Rectangle r = new Rectangle(2, 3, 2, 4);
 
-		Set<Point> ps = Generator.<Point>stream(s -> {
+		GeneratorFunc<Point> pointGen = s -> {
 			for (int x = 0; x < 10; x++) {
 				for (int y = 0; y < 10; y ++) {
 					s.yield(new Point(x, y));
 				}
 			}
-		}).parallel()
+		};
+
+		Set<Point> ps = pointGen.stream().parallel()
 				.filter(r::contains)
 				.collect(Collectors.toSet());
 
@@ -174,7 +169,7 @@ public class GeneratorTest {
 			}
 		};
 
-		int sum1 = Generator.stream(fibs).limit(45).mapToInt(x -> x).sum();
+		int sum1 = fibs.stream().limit(45).mapToInt(x -> x).sum();
 		assertEquals(1836311902, sum1);
 
 		// An old-fashioned Stream of fibonacci numbers
@@ -197,14 +192,12 @@ public class GeneratorTest {
 		};
 
 		// sum of 0-4
-		int sum = Generator.stream(naturalNumbers)
-				.limit(5).mapToInt(x -> x).sum();
+		int sum = naturalNumbers.stream().limit(5).mapToInt(x -> x).sum();
 
 		assertEquals(sum, 10);
 
 		// sum of 0-9
-		sum = Generator.stream(naturalNumbers)
-				.limit(10).mapToInt(x -> x).sum();
+		sum = naturalNumbers.stream() .limit(10).mapToInt(x -> x).sum();
 
 		assertEquals(sum, 45);
 	}

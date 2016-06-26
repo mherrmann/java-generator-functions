@@ -3,6 +3,7 @@ package io.herrmann.generator;
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.stream.Stream;
 
 /**
  * This functional interface allows specifying Python generator-like sequences.
@@ -36,6 +37,19 @@ public interface GeneratorFunc<T> extends Iterable<T> {
 	default Spliterator<T> spliterator() {
 		return Spliterators.spliteratorUnknownSize(iterator(),
 				Spliterator.ORDERED);
+	}
+
+	/**
+	 * Creates a {@link Stream} from a {@link GeneratorFunc}. If you are trying
+	 * to call this on a lambda, you should either use the static method {@link
+	 * Generator#stream()} or assign it to a variable first.
+	 *
+	 * @param g The generator
+	 * @return An ordered, sequential (non-parallel) stream of elements yielded
+	 * by the generator
+	 */
+	public default Stream<T> stream() {
+		return Generator.stream(this);
 	}
 
 }
