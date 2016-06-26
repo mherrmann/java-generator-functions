@@ -31,6 +31,19 @@ GeneratorFunc<Integer> infiniteGenerator = s -> {
 You can even use a generator to create a (parallel) `Stream`:
 
 ```java
+GeneratorFunc<Integer> infiniteGenerator = s -> {
+    int i = 0;
+    while (true) {
+        s.yield(i++);
+    }
+};
+
+infiniteGenerator.stream().limit(100).parallel() // and so on
+```
+
+Or, equivalently:
+
+```java
 // Note that the generic parameter is necessary, or else Java can't determine
 // the generator's type.
 Generator.<Integer>stream(s -> {
