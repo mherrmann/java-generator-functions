@@ -7,25 +7,29 @@ Examples
 --------
 The following is a simple generator that yields `1` and then `2`:
 
-    Generator<Integer> simpleGenerator = new Generator<Integer>() {
-        public void run() throws InterruptedException {
-            yield(1);
-            // Some logic here...
-            yield(2);
-        }
-    };
-    for (Integer element : simpleGenerator)
-        System.out.println(element);
-    // Prints "1", then "2".
+```java
+Generator<Integer> simpleGenerator = new Generator<Integer>() {
+    public void run() throws InterruptedException {
+        yield(1);
+        // Some logic here...
+        yield(2);
+    }
+};
+for (Integer element : simpleGenerator)
+    System.out.println(element);
+// Prints "1", then "2".
+```
 
 Infinite generators are also possible:
 
-    Generator<Integer> infiniteGenerator = new Generator<Integer>() {
-        public void run() throws InterruptedException {
-            while (true)
-                yield(1);
-        }
-    };
+```java
+Generator<Integer> infiniteGenerator = new Generator<Integer>() {
+    public void run() throws InterruptedException {
+        while (true)
+            yield(1);
+    }
+};
+```
 
 The `Generator` class lies in package `io.herrmann.generator`. So you need to `import io.herrmann.generator.Generator;` in order for the above examples to work.
 
@@ -38,28 +42,32 @@ This package is hosted as a Maven repository with the following url:
 
 To use it from Maven, add the following to your `pom.xml`:
 
-    <project>
+```xml
+<project>
+    ...
+    <repositories>
         ...
-        <repositories>
-            ...
-            <repository>
-                <id>java-generator-functions</id>
-                <url>http://dl.bintray.com/filipmalczak/maven</url>
-            </repository>
-        </repositories>
-        ...
-        <dependencies>
-            <dependency>
-                <groupId>io.herrmann</groupId>
-                <artifactId>java-generator-functions</artifactId>
-                <version>1.0</version>
-            </dependency>
-        </dependencies>
-    </project>
+        <repository>
+            <id>java-generator-functions</id>
+            <url>http://dl.bintray.com/filipmalczak/maven</url>
+        </repository>
+    </repositories>
+    ...
+    <dependencies>
+        <dependency>
+            <groupId>io.herrmann</groupId>
+            <artifactId>java-generator-functions</artifactId>
+            <version>1.0</version>
+        </dependency>
+    </dependencies>
+</project>
+```
 
 For Gradle:
 
-    compile(group: 'io.herrmann', name: 'java-generator-functions', version: '1.0')
+```gradle
+compile(group: 'io.herrmann', name: 'java-generator-functions', version: '1.0')
+```
 
 Caveats and Performance
 -----------------------
